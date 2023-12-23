@@ -1,6 +1,6 @@
 # MinMax
 
-Defines an abstract class that can be used to quickly implement a minmax algorithm to a game.
+Defines an abstract class that can be used to quickly implement a minmax algorithm to a game. The algorithm has an adaptative depth feature to control the time it takes to compute its next move.
 
 
 ## Game requirements

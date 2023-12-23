@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+import time
 class GameAbstract(ABC):
     """
     Generalization of a min max heuristic algorithm for two player games that can be boiled down to a list of int : 0, 1 and 2 where 0 is an empty square, 1 is the computer and 2 is the player.
@@ -21,10 +21,33 @@ class GameAbstract(ABC):
     player: int  # Currently playing player.
     depth: int  # Number of level down to go for the heuristic algorithm.
 
-    def __init__(self, first_player, depth):
+    def __init__(self, first_player, depthmax, initdepth, maxtime):
         self.board = self.init_board
         self.player = first_player
-        self.depth = depth
+        self.depthmax = depthmax
+        self.depth = initdepth
+        self.maxtime = maxtime
+
+        self.problem_size = self.get_free_space(self.init_board)
+        # Gives an approximation of the problem size.
+        # The number of computation done is a O(problem_size^depth) due to the recursive approach.
+
+    def adaptative_depth(self, last_time):
+        """
+        Adapts the depth parameter by adding +/- 1 to comply with maxtime and depthmax.
+        :param last_time:
+        :return:
+        """
+        print(last_time)
+        if self.maxtime/(len(self.problem_size)) > last_time and self.depth < self.depthmax :
+            print("Increasing depth")
+            self.depth += 1
+            print(f"New : {self.depth}")
+        if last_time > self.maxtime and self.depth > 1:
+            print("Decreasing depth")
+            self.depth -= 1
+            print(f"New : {self.depth}")
+
 
     @abstractmethod
     def get_free_space(self, board) -> list[int]:
@@ -126,9 +149,17 @@ class GameAbstract(ABC):
 
     def play(self):
         winner = 0
+
+        self.display()
         while winner == 0 or 0 not in self.board:
             if self.player == 1:
-                _, best = self.min_max_heuristic(1, self.depth, self.board)
+                start = time.time()
+                a, best = self.min_max_heuristic(1, self.depth, self.board)
+                if a == 1:
+                    print("J'ai gagné !")
+                deltat = time.time() - start
+                self.adaptative_depth(deltat)
+
                 success = self.place_for(1, best, self.board)
                 if not success:
                     self.display()

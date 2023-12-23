@@ -68,6 +68,6 @@ class Puissance4(minmax.GameAbstract):
     def choose_among(self, moves):
         return random.choice(moves)
 
-P4 = Puissance4(first_player=2, depth=5)
+P4 = Puissance4(first_player=2, depthmax=10, initdepth=5, maxtime=4)
 
 P4.play()
