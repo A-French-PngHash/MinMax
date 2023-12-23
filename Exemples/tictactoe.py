@@ -48,5 +48,5 @@ class Tictactoe(minmax.GameAbstract):
         return [i for i in range(len(board)) if board[i] == 0]
 
 
-t = Tictactoe(first_player=2, depth=2)
+t = Tictactoe(first_player=2, depth=6)
 t.play()

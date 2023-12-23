@@ -15,6 +15,7 @@ class GameAbstract(ABC):
     def move(cls): # Upper limits of the playable squares, ex: 9 for tic tac toe (starts at 1)
         raise NotImplementedError
 
+
     board: list[
         int]  # Current game, updated after the computer/player plays, not when the computer is trying to make predictions.
     player: int  # Currently playing player.
@@ -97,6 +98,12 @@ class GameAbstract(ABC):
             self.place_for(int(((1 - m) / 2) + 1), i, bp)
             a, _ = self.min_max_heuristic((-1) * m, depth - 1, bp)
 
+            # Optimisation alpha beta :
+            # -----
+            if a == m:
+                return a, i
+            # -----
+
             if mini == None or a <= mini:
 
                 if a == mini:
@@ -127,7 +134,6 @@ class GameAbstract(ABC):
                     self.display()
                     raise Exception(f"Problem with the AI : {best} tried to be played but was not succesful.")
             else:
-                self.display()
                 place = int(input(f"Place an O (1 to {self.move}) :")) - 1
                 success = self.place_for(2, place, self.board)
                 if not success:
