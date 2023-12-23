@@ -1,4 +1,6 @@
-class Heuristic:
+from abc import ABC, abstractmethod
+
+class GameAbstract(ABC):
     """
     Generalization of a min max heuristic algorithm for two player games that can be boiled down to a list of int : 0, 1 and 2 where 0 is an empty square, 1 is the computer and 2 is the player.
     """
@@ -15,6 +17,7 @@ class Heuristic:
         self.depth = depth
         self.move = move
 
+    @abstractmethod
     def get_free_space(self) -> list[int]:
         """
         Returns the playable moves.
@@ -22,6 +25,7 @@ class Heuristic:
         """
         pass
 
+    @abstractmethod
     def check_win(self, board) -> int:
         """
         Returns the number of the winner if there is one, otherwise 0.
@@ -31,6 +35,7 @@ class Heuristic:
         """
         pass
 
+    @abstractmethod
     def place_for(self, player, place, board) -> bool:
         """
         Plays for the given player at the given place.
@@ -38,6 +43,7 @@ class Heuristic:
         """
         pass
 
+    @abstractmethod
     def display(self):
         """
         Displays the current game (stored in self.board) to the console.
@@ -45,6 +51,7 @@ class Heuristic:
         """
         pass
 
+    @abstractmethod
     def choose_among(self, moves):
         """
         Chooses the move to plays among a list of move considered all equal.
