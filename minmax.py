@@ -5,20 +5,28 @@ class GameAbstract(ABC):
     Generalization of a min max heuristic algorithm for two player games that can be boiled down to a list of int : 0, 1 and 2 where 0 is an empty square, 1 is the computer and 2 is the player.
     """
 
+    @property
+    @abstractmethod
+    def init_board(cls):
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def move(cls): # Upper limits of the playable squares, ex: 9 for tic tac toe (starts at 1)
+        raise NotImplementedError
+
     board: list[
         int]  # Current game, updated after the computer/player plays, not when the computer is trying to make predictions.
     player: int  # Currently playing player.
     depth: int  # Number of level down to go for the heuristic algorithm.
-    move: int  # Upper limits of the playable squares, ex: 9 for tic tac toe (starts at 1)
 
-    def __init__(self, init_board, first_player, move, depth=10):
-        self.board = init_board
+    def __init__(self, first_player, depth):
+        self.board = self.init_board
         self.player = first_player
         self.depth = depth
-        self.move = move
 
     @abstractmethod
-    def get_free_space(self) -> list[int]:
+    def get_free_space(self, board) -> list[int]:
         """
         Returns the playable moves.
         :return:
@@ -70,35 +78,40 @@ class GameAbstract(ABC):
         :return:
         """
 
-        winner = self.check_win(self.board)
+        winner = self.check_win(board)
         if winner == 1:
             return 1, 0
         elif winner == 2:
             return -1, 0
 
-        if depth == 0 or 0 not in self.board:
+        if depth == 0 or 0 not in board:
             return 0, 0
 
-        free = self.get_free_space()
+        free = self.get_free_space(board)
         mini = None
         minicoup = []
         maxi = None
         maxicoup = []
         for i in free:
-            bp = self.board.copy()
+            bp = board.copy()
             self.place_for(int(((1 - m) / 2) + 1), i, bp)
             a, _ = self.min_max_heuristic((-1) * m, depth - 1, bp)
 
-            if a < mini or mini == None:
-                mini = a
-                minicoup = [i]
-            if a > maxi or maxi == None:
-                mini = a
-                minicoup = [i]
-            if a == mini:
-                minicoup.append(i)
-            if a == maxi:
-                maxicoup.append(i)
+            if mini == None or a <= mini:
+
+                if a == mini:
+                    minicoup.append(i)
+                else:
+                    mini = a
+                    minicoup = [i]
+
+            if maxi == None or a >= maxi:
+
+                if a == maxi:
+                    maxicoup.append(i)
+                else:
+                    maxi = a
+                    maxicoup = [i]
         if m == -1:
             return mini, self.choose_among(minicoup)
         else:
@@ -108,7 +121,7 @@ class GameAbstract(ABC):
         winner = 0
         while winner == 0 or 0 not in self.board:
             if self.player == 1:
-                _, best = self.min_max_heuristic(1, 8, self.board)
+                _, best = self.min_max_heuristic(1, self.depth, self.board)
                 success = self.place_for(1, best, self.board)
                 if not success:
                     self.display()
@@ -128,5 +141,7 @@ class GameAbstract(ABC):
         print("The game has ended.")
         if winner == 0:
             print("No one has won !")
+        elif winner == 1:
+            print("The computer won...")
         else:
-            print(f"Winner : {winner}")
+            print(f"You won")
