@@ -171,11 +171,15 @@ class GameAbstract(ABC):
             p.start()
 
         # All processes are started.
-        for i in procs:
-            i.join()
+        for i in range(len(procs)):
+            procs[i].join()
+            if values[i].value == m:
+                print(f"Found {m} for {free[i]}, stopping processes")
+                for p in procs:
+                    p.kill()
+                return m, free[i]
 
         # Here all processes are finished.
-
         return self._get_extremum(m, [i.value for i in values], free)
 
     def play(self):
