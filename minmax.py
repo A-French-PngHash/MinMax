@@ -1,5 +1,15 @@
 from abc import ABC, abstractmethod
 import time
+import multiprocessing
+from multiprocessing import Value
+import random
+from multiprocessing.shared_memory import SharedMemory
+
+
+def worker(m, depth, bp, val, shared_mem, min_max_heuristic):
+    a, best = min_max_heuristic(m * (-1), depth - 1, bp, shared_mem)
+    val.value = a
+
 class GameAbstract(ABC):
     """
     Generalization of a min max heuristic algorithm for two player games that can be boiled down to a list of int : 0, 1 and 2 where 0 is an empty square, 1 is the computer and 2 is the player.
@@ -92,15 +102,20 @@ class GameAbstract(ABC):
         :return:
         """
 
-    def min_max_heuristic(self, m, depth: int, board):
+    def min_max_heuristic(self, m, depth: int, board, shared_memory):
         """
         Computer is player 1
 
         :param m: Either -1 or 1, indicates wether to take the min (-1) or the max (1) of the possible outcomes.
         :param depth:
         :param board: Board used to calculate the euristic.
+        :param toplevel: Wether this function was called by itself (False) or by an external function (True).
         :return:
         """
+        shared = SharedMemory(name='Mem', create=False)
+        if shared.buf[0] != 0:
+            print("Another process found a forced move.")
+            return 0, 0
 
         winner = self.check_win(board)
         if winner == 1:
@@ -111,43 +126,67 @@ class GameAbstract(ABC):
         if depth == 0 or 0 not in board:
             return 0, 0
 
+
         free = self.get_free_space(board)
-        mini = None
-        minicoup = []
-        maxi = None
-        maxicoup = []
+
+        value = []
         for i in free:
             bp = board.copy()
             self.place_for(int(((1 - m) / 2) + 1), i, bp)
-            a, _ = self.min_max_heuristic((-1) * m, depth - 1, bp)
-
+            a, _ = self.min_max_heuristic((-1) * m, depth - 1, bp, shared_memory)
             # Optimisation alpha beta :
             # -----
-            if a == m:
+            if a == m:  # Valeur maximale/minimale, inutile de calculer d'autres coups possibles.
                 return a, i
             # -----
+            value.append(a)
 
-            if mini == None or a <= mini:
+        return self._get_extremum(m, value, free)
 
-                if a == mini:
-                    minicoup.append(i)
-                else:
-                    mini = a
-                    minicoup = [i]
 
-            if maxi == None or a >= maxi:
-
-                if a == maxi:
-                    maxicoup.append(i)
-                else:
-                    maxi = a
-                    maxicoup = [i]
-        if m == -1:
-            return mini, self.choose_among(minicoup)
+    def _get_extremum(self,m, value, free):
+        if m == 1:
+            extremum = max(value)
+            coups = [free[i] for i in range(len(value)) if value[i] == extremum]
         else:
-            return maxi, self.choose_among(maxicoup)
+            extremum = min(value)
+            coups = [free[i] for i in range(len(value)) if value[i] == extremum]
+
+        return extremum, self.choose_among(coups)
+
+    def toplevel(self, m, depth, board):
+        if depth == 0:
+            raise Exception("'toplevel' call with depth = 0 is not allowed.")
+        shared_mem = SharedMemory(name='Mem', create=False)
+        shared_mem.buf[0] = 0
+        procs = []
+
+        free = self.get_free_space(board)
+
+
+        values = []
+        procs = []
+        for i in free:
+            bp = board.copy()
+            self.place_for(int(((1 - m) / 2) + 1), i, bp)
+            val = Value('i', 0)
+            values.append(val)
+            p = multiprocessing.Process(target=worker, args=(m,depth, bp, val, shared_mem, self.min_max_heuristic))
+            procs.append(p)
+            p.start()
+
+        # All processes are started.
+        for i in procs:
+            i.join()
+
+        # Here all processes are finished.
+
+        return self._get_extremum(m, [i.value for i in values], free)
+
+
 
     def play(self):
+        SharedMemory(name='Mem', size=8, create=True)
         winner = 0
 
 
@@ -155,7 +194,7 @@ class GameAbstract(ABC):
         while winner == 0 or 0 not in self.board:
             if self.player == 1:
                 start = time.time()
-                a, best = self.min_max_heuristic(1, self.depth, self.board)
+                a, best = self.toplevel(1, self.depth, self.board)
                 if a == 1:
                     print("J'ai gagné !")
                 deltat = time.time() - start
