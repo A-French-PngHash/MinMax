@@ -10,6 +10,7 @@ def worker(m, depth, bp, val, shared_mem, min_max_heuristic):
     a, best = min_max_heuristic(m * (-1), depth - 1, bp, shared_mem)
     val.value = a
 
+
 class GameAbstract(ABC):
     """
     Generalization of a min max heuristic algorithm for two player games that can be boiled down to a list of int : 0, 1 and 2 where 0 is an empty square, 1 is the computer and 2 is the player.
@@ -22,9 +23,8 @@ class GameAbstract(ABC):
 
     @property
     @abstractmethod
-    def move(cls): # Upper limits of the playable squares, ex: 9 for tic tac toe (starts at 1)
+    def move(cls):  # Upper limits of the playable squares, ex: 9 for tic tac toe (starts at 1)
         raise NotImplementedError
-
 
     board: list[
         int]  # Current game, updated after the computer/player plays, not when the computer is trying to make predictions.
@@ -49,7 +49,7 @@ class GameAbstract(ABC):
         :return:
         """
         print(last_time)
-        if self.maxtime/(len(self.problem_size)) > last_time and self.depth < self.depthmax :
+        if self.maxtime / (len(self.problem_size)) > last_time and self.depth < self.depthmax:
             print("Increasing depth")
             self.depth += 1
             print(f"New : {self.depth}")
@@ -57,7 +57,6 @@ class GameAbstract(ABC):
             print("Decreasing depth")
             self.depth -= 1
             print(f"New : {self.depth}")
-
 
     @abstractmethod
     def get_free_space(self, board) -> list[int]:
@@ -112,8 +111,7 @@ class GameAbstract(ABC):
         :param toplevel: Wether this function was called by itself (False) or by an external function (True).
         :return:
         """
-        shared = SharedMemory(name='Mem', create=False)
-        if shared.buf[0] != 0:
+        if shared_memory.buf[0] != 0:
             print("Another process found a forced move.")
             return 0, 0
 
@@ -125,7 +123,6 @@ class GameAbstract(ABC):
 
         if depth == 0 or 0 not in board:
             return 0, 0
-
 
         free = self.get_free_space(board)
 
@@ -143,8 +140,7 @@ class GameAbstract(ABC):
 
         return self._get_extremum(m, value, free)
 
-
-    def _get_extremum(self,m, value, free):
+    def _get_extremum(self, m, value, free):
         if m == 1:
             extremum = max(value)
             coups = [free[i] for i in range(len(value)) if value[i] == extremum]
@@ -163,7 +159,6 @@ class GameAbstract(ABC):
 
         free = self.get_free_space(board)
 
-
         values = []
         procs = []
         for i in free:
@@ -171,7 +166,7 @@ class GameAbstract(ABC):
             self.place_for(int(((1 - m) / 2) + 1), i, bp)
             val = Value('i', 0)
             values.append(val)
-            p = multiprocessing.Process(target=worker, args=(m,depth, bp, val, shared_mem, self.min_max_heuristic))
+            p = multiprocessing.Process(target=worker, args=(m, depth, bp, val, shared_mem, self.min_max_heuristic))
             procs.append(p)
             p.start()
 
@@ -183,12 +178,9 @@ class GameAbstract(ABC):
 
         return self._get_extremum(m, [i.value for i in values], free)
 
-
-
     def play(self):
         SharedMemory(name='Mem', size=8, create=True)
         winner = 0
-
 
         self.display()
         while winner == 0 or 0 not in self.board:
