@@ -150,6 +150,7 @@ class GameAbstract(ABC):
     def play(self):
         winner = 0
 
+
         self.display()
         while winner == 0 or 0 not in self.board:
             if self.player == 1:
