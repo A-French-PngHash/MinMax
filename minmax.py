@@ -4,7 +4,7 @@ import multiprocessing
 from multiprocessing import Value
 import random
 from multiprocessing.shared_memory import SharedMemory
-
+import atexit
 
 def worker(m, depth, bp, val, shared_mem, min_max_heuristic):
     a, best = min_max_heuristic(m * (-1), depth - 1, bp, shared_mem)
@@ -153,6 +153,7 @@ class GameAbstract(ABC):
     def toplevel(self, m, depth, board):
         if depth == 0:
             raise Exception("'toplevel' call with depth = 0 is not allowed.")
+
         shared_mem = SharedMemory(name='Mem', create=False)
         shared_mem.buf[0] = 0
         procs = []
@@ -164,26 +165,34 @@ class GameAbstract(ABC):
         for i in free:
             bp = board.copy()
             self.place_for(int(((1 - m) / 2) + 1), i, bp)
-            val = Value('i', 0)
+            val = Value('i', -2)
             values.append(val)
             p = multiprocessing.Process(target=worker, args=(m, depth, bp, val, shared_mem, self.min_max_heuristic))
             procs.append(p)
             p.start()
 
         # All processes are started.
-        for i in range(len(procs)):
-            procs[i].join()
-            if values[i].value == m:
-                print(f"Found {m} for {free[i]}, stopping processes")
+        while -2 in [i.value for i in values]:
+            time.sleep(0.1)
+            if m in [i.value for i in values]:
+                print(f"Found {m} for , stopping processes")
                 for p in procs:
                     p.kill()
-                return m, free[i]
+                return m, free[[i.value for i in values ]]
 
         # Here all processes are finished.
         return self._get_extremum(m, [i.value for i in values], free)
 
     def play(self):
-        SharedMemory(name='Mem', size=8, create=True)
+        try:
+            sh = SharedMemory("Mem", create=False)
+            sh.close()
+            sh.unlink()
+        except:
+            print("Error in deleting memory")
+        finally:
+            print("Creating mem")
+            SharedMemory(name='Mem', size=8, create=True)
         winner = 0
 
         self.display()
@@ -218,3 +227,11 @@ class GameAbstract(ABC):
             print("The computer won...")
         else:
             print(f"You won")
+
+
+def save():
+    sh = SharedMemory("Mem", create=False)
+    sh.close()
+    sh.unlink()
+if __name__ == "__main__":
+    atexit.register(save)
