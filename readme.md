@@ -25,3 +25,9 @@ Currently, the heuristic for a given situation if :
 - 1 if the computer wins
 - -1 if the player wins
 - 0 otherwise
+
+## Multiprocess
+
+The programm makes use of the fact that processors often have multiple cores by implementing multiprocess. The computation is divided and given to the multiple cores thus decreasing computation time by better using the machine capacity as is shown with the following graph : 
+
+![Graphic](TimeMultiprocess.png)
