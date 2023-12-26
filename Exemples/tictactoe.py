@@ -8,6 +8,7 @@ class Tictactoe(minmax.GameAbstract):
 
     @property
     def init_board(cls):
+
         return [0 for _ in range(9)]
 
     win_pos = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
@@ -47,6 +48,6 @@ class Tictactoe(minmax.GameAbstract):
     def get_free_space(self, board) -> list[int]:
         return [i for i in range(len(board)) if board[i] == 0]
 
-
-t = Tictactoe(first_player=2, depthmax=6, initdepth=4, maxtime=1)
-t.play()
+if __name__ == "__main__":
+    t = Tictactoe(first_player=2, depthmax=1, initdepth=1, maxtime=1)
+    t.play()

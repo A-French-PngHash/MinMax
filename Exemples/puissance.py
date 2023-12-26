@@ -1,3 +1,5 @@
+from multiprocessing.shared_memory import SharedMemory
+
 import minmax
 import random
 import time
@@ -69,15 +71,7 @@ class Puissance4(minmax.GameAbstract):
 
     def choose_among(self, moves):
         return random.choice(moves)
+if __name__ == "__main__":
+    P4 = Puissance4(first_player=2, depthmax=10, initdepth=6, maxtime=7)
+    P4.play()
 
-P4 = Puissance4(first_player=2, depthmax=10, initdepth=5, maxtime=4)
-
-#P4.play()
-timedata = []
-
-for i in range(1, 7):
-    print(f"Depth : {i}")
-    init = time.time()
-    P4.min_max_heuristic(1, i, P4.init_board)
-    timedata.append(time.time() - init)
-print(timedata)
