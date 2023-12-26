@@ -1,5 +1,8 @@
+from multiprocessing.shared_memory import SharedMemory
+
 import minmax
 import random
+import time
 
 class Puissance4(minmax.GameAbstract):
     @property
@@ -69,5 +72,12 @@ class Puissance4(minmax.GameAbstract):
         return random.choice(moves)
 if __name__ == "__main__":
     P4 = Puissance4(first_player=2, depthmax=10, initdepth=6, maxtime=7)
+    timedata = []
 
-    P4.play()
+    SharedMemory(name='Mem', size=8, create=True)
+    for i in range(1, 8):
+        print(f"Depth : {i}")
+        init = time.time()
+        P4.toplevel(1, i, P4.init_board)
+        timedata.append(time.time() - init)
+    print(timedata)

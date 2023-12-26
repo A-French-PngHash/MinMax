@@ -178,7 +178,7 @@ class GameAbstract(ABC):
                 print(f"Found {m} for , stopping processes")
                 for p in procs:
                     p.kill()
-                return m, free[[i.value for i in values ]]
+                return m, free[[i.value for i in values].index(m)]
 
         # Here all processes are finished.
         return self._get_extremum(m, [i.value for i in values], free)
