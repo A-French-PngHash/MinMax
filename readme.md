@@ -7,7 +7,7 @@ Defines an abstract class that can be used to quickly implement a minmax algorit
 
 
 - Two player game.
-- Describable by a list of player positions (and empty places)
+- Describable by a list of player positions (and empty squares)
 
 ## How to implement
 The GameAbstract class must be inherited from in a new specific class for the game. The following methods must be defined : 
